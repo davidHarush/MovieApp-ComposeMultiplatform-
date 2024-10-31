@@ -202,42 +202,28 @@ fun CustomCameraView() {
 }
 
 @Composable
-fun MovieDetailsScreen_X(movie: Movie, onBack: () -> Unit) {
-    val scope = rememberCoroutineScope()
-
-    val singleImagePicker = rememberImagePickerLauncher(
-        selectionMode = SelectionMode.Single,
-        scope = scope,
-        onResult = { byteArrays ->
-            byteArrays.firstOrNull()?.let {
-                // Process the selected images' ByteArrays.
-                println(it)
-            }
-        }
-    )
-
+fun MovieDetailsScreen(movie: Movie, onBack: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(horizontal =16.dp)
     ) {
-        Text(
-            text = movie.title,
-            style = MaterialTheme.typography.h4,
-            color = Color.Black,
-            fontWeight = FontWeight.SemiBold
-        )
-        Spacer(modifier = Modifier.height(16.dp))
         AsyncImage(
             model = MovieHelper.getImagesUrl(movie),
             contentDescription = "",
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(300.dp)
-                .clip(RoundedCornerShape(16.dp))
+                .height(250.dp)
+                .clip(RoundedCornerShape(bottomEnd = 24.dp, bottomStart = 24.dp))
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Text(
+            text = movie.title,
+            style = MaterialTheme.typography.h4,
+            color = Color.Black,
+            fontWeight = FontWeight.SemiBold
+        )
+        Spacer(modifier = Modifier.height(24.dp))
         Text(
             text = movie.overview,
             style = MaterialTheme.typography.body1,
@@ -248,117 +234,5 @@ fun MovieDetailsScreen_X(movie: Movie, onBack: () -> Unit) {
             Text("Back")
         }
 
-
-
-        Button(
-            onClick = {
-                singleImagePicker.launch()
-            }
-        ) {
-            Text("Pick Single Image")
-        }
     }
 }
-
-
-@Composable
-fun MovieDetailsScreen(movie: Movie, onBack: () -> Unit) {
-    val scope = rememberCoroutineScope()
-    var selectedBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
-
-    val singleImagePicker = rememberImagePickerLauncher(
-        selectionMode = SelectionMode.Single,
-        scope = scope,
-        resizeOptions = ResizeOptions(compressionQuality = 0.5),
-        onResult = { byteArrays ->
-            byteArrays.firstOrNull()?.let { byteArray ->
-                selectedBitmap = byteArray.toImageBitmap()
-            }
-        }
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Button(
-            onClick = {
-                singleImagePicker.launch()
-            }
-        ) {
-            Text("Pick Single Image")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        selectedBitmap?.let { bitmap ->
-            Image(
-                bitmap = bitmap,
-                contentDescription = "Selected Image",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-
-            )
-        }
-    }
-}
-
-
-@Composable
-fun MovieDetailsScreen3(movie: Movie, onBack: () -> Unit) {
-    val scope = rememberCoroutineScope()
-    var selectedBitmap by remember { mutableStateOf<List<ImageBitmap?>>(emptyList()) }
-
-    val singleImagePicker = rememberImagePickerLauncher(
-        selectionMode = SelectionMode.Multiple(maxSelection = 3),
-        scope = scope,
-        onResult = { byteArrays ->
-
-            byteArrays.firstOrNull()?.let { byteArray ->
-                selectedBitmap = byteArrays.map { it.toImageBitmap() }
-            }
-        }
-
-
-//            byteArrays.firstOrNull()?.let { byteArray ->
-//                byteArrays
-//                selectedBitmap = byteArray.toImageBitmap()
-//            }
-    )
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Button(
-            onClick = {
-                singleImagePicker.launch()
-            }
-        ) {
-            Text("Pick Single Image")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        selectedBitmap.forEach {
-            it?.let { bitmap ->
-                Image(
-                    bitmap = bitmap,
-                    contentDescription = "Selected Image",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .height(200.dp)
-                        .clip(RoundedCornerShape(16.dp))
-
-                )
-            }
-        }
-
-
-    }
-}
-
