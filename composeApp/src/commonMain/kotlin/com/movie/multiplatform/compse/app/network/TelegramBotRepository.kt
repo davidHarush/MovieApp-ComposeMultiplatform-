@@ -193,10 +193,10 @@ class TelegramBotRepository {
         val url = "https://api.telegram.org/bot$botToken/sendMessage"
         val inlineKeyboardMarkup = InlineKeyboardMarkup(
             inline_keyboard = listOf(
-                listOf(InlineKeyboardButton(text = "צור קשר", callback_data = "contact_us")),
+                listOf(InlineKeyboardButton(text = "Contact us", callback_data = "contact_us")),
                 listOf(
                     InlineKeyboardButton(
-                        text = "קישורים נוספים",
+                        text = "Additional links",
                         callback_data = "additional_links"
                     )
                 )
@@ -207,7 +207,7 @@ class TelegramBotRepository {
             setBody(
                 TelegramMessageWithKeyboardRequest(
                     chat_id = groupId,
-                    text = "איך אוכל לעזור לכם היום?",
+                    text = "Welcome to our bot",
                     reply_markup = inlineKeyboardMarkup
                 )
             )
@@ -244,13 +244,13 @@ class TelegramBotRepository {
 
                 if (chatId != null) {
                     when (data) {
-                        "contact_us" -> sendMessageToChatWithId(chatId, "לחצת על צור קשר ?")
+                        "contact_us" -> sendMessageToChatWithId(chatId, "did you click contact us ?")
                         "additional_links" -> sendMessageToChatWithId(
                             chatId,
-                            "לחצת על כפתור קישורים נוספים ?"
+                            " did you click additional links ?"
                         )
 
-                        else -> sendMessageToChatWithId(chatId, "לא מוכר הנתון שהתקבל.")
+                        else -> sendMessageToChatWithId(chatId, "I don't know what you want")
                     }
                 }
             }
@@ -357,100 +357,3 @@ class TelegramBotRepository {
         val reply_markup: ReplyKeyboardMarkup
     )
 }
-
-
-//package com.movie.multiplatform.compse.app.network
-//import com.movie.multiplatform.compse.app.getPlatform
-//import io.github.aakira.napier.Napier
-//import io.github.aakira.napier.log
-//import io.ktor.client.HttpClient
-//import io.ktor.client.engine.cio.CIO
-//import io.ktor.client.request.post
-//import io.ktor.client.statement.HttpResponse
-//import io.ktor.client.call.body
-//import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-//import io.ktor.client.plugins.logging.DEFAULT
-//import io.ktor.client.plugins.logging.LogLevel
-//import io.ktor.client.plugins.logging.Logger
-//import io.ktor.client.plugins.logging.Logging
-//import io.ktor.client.request.setBody
-//import io.ktor.client.statement.bodyAsText
-//import io.ktor.http.ContentType
-//import io.ktor.http.HttpStatusCode
-//import io.ktor.http.contentType
-//import io.ktor.serialization.kotlinx.json.json
-//import kotlinx.coroutines.CoroutineStart
-//import kotlinx.serialization.Serializable
-//import kotlinx.serialization.json.Json
-//
-//
-//
-//
-//class TelegramBotRepository{
-//
-//    private val botToken = "7589068254:AAFSAmR3Bumywa6L9EnW_twwVxSIBsAAaJU"
-//    private val groupId :String = "-1002391522958"
-//
-//    val client = HttpClient(getPlatform().httpClientEngine) {
-//        install(ContentNegotiation) {
-//            json(Json { ignoreUnknownKeys = true })
-//        }
-//        install(Logging) {
-//            level = LogLevel.ALL
-//            logger = Logger.DEFAULT
-//        }
-//    }
-//
-//    suspend fun sendMessageToChat(message: String) {
-//        val url = "https://api.telegram.org/bot$botToken/sendMessage"
-//        val longMsg = message
-//        val response: HttpResponse = client.post(url) {
-//            contentType(ContentType.Application.Json)
-//            setBody(TelegramMessageRequest(chat_id = groupId, text = longMsg))
-//        }
-//        println("sendMessageToChat response: ${response.status}, body: ${response.bodyAsText()}")
-//    }
-//
-//
-//
-//    @Serializable
-//    data class TelegramMessageRequest(val chat_id: String, val text: String)
-//
-//
-//
-//    }
-//
-
-
-//
-//
-//
-//    //********************************************************************************************************************
-//    suspend fun sendMessageToChat222(message: String) {
-////        val apiKey = "1000000:aaaaaaaaaa"   // Retrieve a key from @BotFather
-////        val chatId = "10000_example"        // Choose a destination for your message
-//
-////        val httpClient = HttpClient(OkHttp) {
-////            install(Logging) {
-////                logger = Logger.DEFAULT
-////                level = LogLevel.ALL
-////            }
-////        }
-//
-//
-//        val telegramApi =
-//            TelegramClient(botToken, client) // NOTE httpClient is an optional parameter
-//
-//        val chat_id = ChatId(groupId)
-//
-//        val chatData :TelegramResponse<ChatFullInfo> = telegramApi.getChat(chat_id,)
-//
-//        chatData.result?.let {
-//            println("chatData: ${it.type}")
-//            println("chatData: ${it.active_usernames.toString()}")
-//        }
-//
-//        telegramApi.sendMessage(chat_id, message)
-//
-//
-//    }

@@ -142,7 +142,7 @@ fun MovieDetailsScreen(movieId: Int, onBack: () -> Unit) {
 
                 Text(
                     text = "Cast",
-                    style = MaterialTheme.typography.h5,
+                    style = MaterialTheme.typography.h6,
                     fontWeight = FontWeight.SemiBold
 
                 )
@@ -153,7 +153,7 @@ fun MovieDetailsScreen(movieId: Int, onBack: () -> Unit) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "Movie Posters",
-                        style = MaterialTheme.typography.h5,
+                        style = MaterialTheme.typography.h6,
                         fontWeight = FontWeight.SemiBold
                     )
                     MovieImagesList(images)
@@ -164,7 +164,7 @@ fun MovieDetailsScreen(movieId: Int, onBack: () -> Unit) {
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "Collection: ${collection?.name}",
-                        style = MaterialTheme.typography.h5,
+                        style = MaterialTheme.typography.h6,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
