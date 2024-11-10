@@ -50,14 +50,17 @@ To get started with this project, you need to have Android Studio or IntelliJ ID
 ## Screenshots
 
 ### Android
+<div style="display: flex; flex-wrap: wrap;">
+  <img src="screenshots/android_screenshot_1.png" alt="Android Screenshot 1" width="30%" style="margin: 10px;" />
+  <img src="screenshots/android_screenshot_2.png" alt="Android Screenshot 2" width="30%" style="margin: 10px;" />
+</div>
 
-![Android Screenshot 1](screenshots/android_screenshot_1.png)
-![Android Screenshot 2](screenshots/android_screenshot_2.png)
 
 ### iOS
-
-![iOS Screenshot 1](screenshots/ios_screenshot_1.png)
-![iOS Screenshot 2](screenshots/ios_screenshot_2.png)
+<div style="display: flex; flex-wrap: wrap;">
+  <img src="screenshots/ios_screenshot_1.png" alt="iOS Screenshot 1" width="30%" style="margin: 10px;" />
+  <img src="screenshots/ios_screenshot_2.png" alt="iOS Screenshot 2" width="30%" style="margin: 10px;" />
+</div>
 
 ## Contributing
 
