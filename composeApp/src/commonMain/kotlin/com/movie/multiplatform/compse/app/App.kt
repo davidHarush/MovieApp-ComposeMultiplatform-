@@ -1,238 +1,220 @@
 package com.movie.multiplatform.compse.app
 
-import androidx.compose.foundation.Image
+
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.content.MediaType.Companion.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Button
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Divider
+import androidx.compose.material.DrawerValue
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
+import androidx.compose.material.ModalDrawer
+import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
+import androidx.compose.material.TopAppBar
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
-import coil3.Bitmap
+import androidx.navigation.NavBackStackEntry
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import app.cash.paging.compose.collectAsLazyPagingItems
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.annotation.ExperimentalCoilApi
-import coil3.compose.AsyncImage
 import coil3.compose.setSingletonImageLoaderFactory
 import coil3.request.crossfade
 import coil3.util.DebugLogger
 import com.movie.multiplatform.compse.app.network.Movie
-import com.movie.multiplatform.compse.app.network.MovieHelper
-import com.movie.multiplatform.compse.app.network.MovieRepository
-import com.movie.multiplatform.compse.app.network.TelegramBotRepository
-import com.preat.peekaboo.image.picker.ResizeOptions
-import com.preat.peekaboo.image.picker.SelectionMode
-import com.preat.peekaboo.image.picker.rememberImagePickerLauncher
-import com.preat.peekaboo.image.picker.toImageBitmap
-import com.preat.peekaboo.ui.camera.PeekabooCamera
-import com.preat.peekaboo.ui.camera.rememberPeekabooCameraState
-import io.github.aakira.napier.Napier
-import kotlinx.coroutines.CoroutineScope
+import com.movie.multiplatform.compse.app.network.MovieFetchType
+import com.movie.multiplatform.compse.app.network.getPagedMovies
+import com.movie.multiplatform.compse.app.ui.BottomNavigationBar
+import com.movie.multiplatform.compse.app.ui.DrawerContent
+import com.movie.multiplatform.compse.app.ui.screens.ImageSelectionSingle
+import com.movie.multiplatform.compse.app.ui.screens.MovieDetailsScreen
+import com.movie.multiplatform.compse.app.ui.screens.MovieListScreen
 import kotlinx.coroutines.launch
 
 
-fun getMovies(scope: CoroutineScope, onMoviesFetched: (List<Movie>) -> Unit) {
-    scope.launch {
-        runCatching {
-            val movies = MovieRepository().getPopularMovies().results
-            println("movies: $movies")
-            onMoviesFetched(movies)
-        }.onFailure { e ->
-            if (e is Exception) {
-                Napier.e(
-                    tag = "MovieRepository",
-                    message = "Error fetching movies: ${e.message}",
-                    throwable = e
-                )
-                println("Handled error: ${e.message}")
-            }
+sealed class AppScreen(val route: String, val title: String , val icon: ImageVector? = null) {
+    data object PopularMovies : AppScreen("PopularMovies", "Popular Movies", Icons.Filled.Home)
+    data object TopRatedMovies : AppScreen("TopRatedMovies", "TopRated Movies", Icons.Default.Favorite)
+    data object MovieDetails : AppScreen("movieDetails/{movieId}", "Movie Details", Icons.Filled.Menu)
+    data object ImageSelection : AppScreen("Image Selection", "Image Selection", Icons.Default.Settings)
+
+    companion object {
+        fun MovieDetails.createRoute(movieId: String): String {
+            return "movieDetails/$movieId"
+        }
+
+        fun find(predicate: (AppScreen) -> Boolean): AppScreen? {
+            return screenList.find(predicate)
+        }
+
+        val screenList: List<AppScreen>
+            get() = listOf(PopularMovies,TopRatedMovies, MovieDetails, ImageSelection)
         }
     }
-}
-fun getAsyncImageLoader(context: PlatformContext)=
+
+
+fun getAsyncImageLoader(context: PlatformContext) =
     ImageLoader.Builder(context).crossfade(true).logger(DebugLogger()).build()
+
 
 @OptIn(ExperimentalCoilApi::class)
 @Composable
 fun App() {
 
     val scope = rememberCoroutineScope()
-    var movies by remember { mutableStateOf<List<Movie>>(emptyList()) }
-    var isLoading = remember { mutableStateOf(true) }
+    val drawerState = rememberDrawerState(DrawerValue.Closed)
+    val navController: NavHostController = rememberNavController()
+    val movies = getPagedMovies(MovieFetchType.POPULAR).collectAsLazyPagingItems()
     var selectedMovie by remember { mutableStateOf<Movie?>(null) }
 
 
+    MaterialTheme(
+        colors = MaterialTheme.colors.copy(
+            primary = Color(0xFF3B82F6),
+            primaryVariant = Color(0xFF1E3A8A),
+            secondary = Color(0xFFF59E0B),
+            background = Color(0xFFF3F4F6),
+            surface = Color(0xFFFFFFFF),
+            onPrimary = Color.White,
+            onSecondary = Color.Black,
+            onBackground = Color(0xFF1F2937),
+            onSurface = Color(0xFF1F2937)
+        )
+    ) {
+        setSystemBarColor( MaterialTheme.colors.primary) // only for android
 
-    LaunchedEffect(Unit) {
-   //     TelegramBotRepository().sendMessageToChat("Hello from ${getPlatform().name}")
-
-        getMovies(scope) { movie ->
-            movies = movie.toMutableList()
-            isLoading.value = false
-        }
-    }
-
-    MaterialTheme {
         setSingletonImageLoaderFactory { context ->
             getAsyncImageLoader(context)
         }
-        if (selectedMovie != null) {
-            MovieDetailsScreen(movie = selectedMovie!!, onBack = { selectedMovie = null })
-        } else {
-            LazyColumn(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                if (isLoading.value) {
-                    item {
-                        Spacer(modifier = Modifier.padding(36.dp))
-                        Text("Loading...")
-                        CircularProgressIndicator()
+
+        ModalDrawer(
+            drawerState = drawerState,
+            drawerContent = {
+                DrawerContent(navController, drawerState)
+            }
+        ) {
+            val currentRoute = currentRoute(navController)
+            println("Current Route: $currentRoute")
+
+            Scaffold(
+                topBar = {
+                    TopAppBar(
+                        contentColor = MaterialTheme.colors.onPrimary,
+                        backgroundColor = MaterialTheme.colors.primary,
+                        title = { Text(getTitle(currentRoute ,  selectedMovie?.title ?: "")) },
+                        navigationIcon = {
+                            IconButton(onClick = {
+                                scope.launch {
+                                    drawerState.open()
+                                }
+                            }) {
+                                Icon(Icons.Filled.Menu, contentDescription = "Menu")
+                            }
+                        }
+                    )
+                },
+                bottomBar = {
+                    if (currentRoute == AppScreen.PopularMovies.route || currentRoute == AppScreen.TopRatedMovies.route || currentRoute == AppScreen.ImageSelection.route) {
+                        BottomNavigationBar(navController, currentRoute ?: "")
                     }
-                } else {
-                    items(movies) { movie ->
-                        MovieItem(movie, onMovieClick = { selectedMovie = it })
-                        Divider()
+                },
+            ) { innerPadding ->
+                NavHost(
+                    navController = navController,
+                    startDestination = AppScreen.PopularMovies.route,
+                    modifier = Modifier.padding(innerPadding)
+                ) {
+                    composable(route = AppScreen.PopularMovies.route) {
+                        MovieListScreen(movies = movies, navController = navController)
                     }
+                    composable(route = AppScreen.TopRatedMovies.route) {
+                        MovieListScreen(movies = movies, navController = navController)
+                    }
+                    composable(
+                        route = AppScreen.MovieDetails.route,
+                        arguments = listOf(navArgument("movieId") { type = NavType.StringType })
+                    ) { backStackEntry ->
+                        val movieId = NavArgumentsUtil.getStringArgument(backStackEntry , "movieId")
+                        selectedMovie = movies.itemSnapshotList.items.find { it.id.toString() == movieId }
+                        MovieDetailsScreen(
+                            movieId = movieId?.toInt() ?: 0,
+                            onBack = {
+                                selectedMovie = null
+                                navController.popBackStack()
+                            }
+                        )
+                    }
+                    composable(route = AppScreen.ImageSelection.route) {
+                        ImageSelectionSingle()
+                    }
+
                 }
             }
         }
     }
 }
 
-//@Composable
-//fun testTelegramBot() {
-//    rememberCoroutineScope().launch {
-//        TelegramBotRepository().sendMessageToChat("Hello from Compose  -> device: ${getPlatform().name}")
-////            val stickerFileId =
-////                "CAACAgQAAxkBAAEuxWJnI0kknwek2BEc-_ihqOvdJorztwACAQcAApWtnAForTr_KwnG6zYE"
-////            sendStickerToChat(stickerFileId)
-////            sendWelcomeMessageWithInlineKeyboard()
-////            startListeningForCallbackQueries(this@launch)
-//
-//    }
-//
-//
-//}
+private fun getTitle(currentRoute : String? , selectedMovie:String ): String {
+    if(currentRoute == null) return "Movies"
+
+    if(currentRoute == AppScreen.ImageSelection.route) return "Image Selection"
+
+    if (currentRoute == AppScreen.MovieDetails.route){
+        return if(selectedMovie.isNotEmpty()) selectedMovie
+        else "Movie Details"
+    }
+
+
+
+    val currentRouteName = currentRoute.split("/")?.first()
+    val screenName = AppScreen.find { it.route == currentRouteName }?.title
+    return screenName ?: "Movies"
+
+
+}
+
 
 @Composable
-fun MovieItem(movie: Movie, onMovieClick: (Movie) -> Unit) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .padding(vertical = 6.dp)
-            .clickable { onMovieClick(movie) },
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        AsyncImage(
-            model = MovieHelper.getImagesUrl(movie),
-            contentDescription = "",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .width(180.dp)
-                .height(100.dp)
-                .clip(RoundedCornerShape(12.dp))
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Column(
-            modifier = Modifier.weight(1f).fillMaxHeight(),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = movie.title,
-                style = MaterialTheme.typography.h5,
-                maxLines = 1,
-                color = Color.Black,
-                fontWeight = FontWeight.SemiBold
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = movie.overview,
-                style = MaterialTheme.typography.body2,
-                color = Color.Gray,
-                maxLines = 3,
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-        }
+fun currentRoute(navController: NavController): String? {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    return navBackStackEntry?.destination?.route
+}
+
+
+
+object NavArgumentsUtil {
+    fun getStringArgument(backStackEntry: NavBackStackEntry, key: String, defaultValue: String? = null): String? {
+        return backStackEntry.arguments?.getString(key) ?: defaultValue
+    }
+
+    fun getIntArgument(backStackEntry: NavBackStackEntry, key: String, defaultValue: Int = 0): Int {
+        return backStackEntry.arguments?.getString(key)?.toIntOrNull() ?: defaultValue
     }
 }
 
-@Composable
-fun CustomCameraView() {
-    val state = rememberPeekabooCameraState(onCapture = { /* Handle captured images */ })
-    PeekabooCamera(
-        state = state,
-        modifier = Modifier.fillMaxSize(),
-        permissionDeniedContent = {
-            // Custom UI content for permission denied scenario
-        },
-    )
-}
-
-@Composable
-fun MovieDetailsScreen(movie: Movie, onBack: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal =16.dp)
-    ) {
-        AsyncImage(
-            model = MovieHelper.getImagesUrl(movie),
-            contentDescription = "",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(250.dp)
-                .clip(RoundedCornerShape(bottomEnd = 24.dp, bottomStart = 24.dp))
-        )
-        Text(
-            text = movie.title,
-            style = MaterialTheme.typography.h4,
-            color = Color.Black,
-            fontWeight = FontWeight.SemiBold
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        Text(
-            text = movie.overview,
-            style = MaterialTheme.typography.body1,
-            color = Color.Gray
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        Button(onClick = onBack) {
-            Text("Back")
-        }
-
-    }
-}

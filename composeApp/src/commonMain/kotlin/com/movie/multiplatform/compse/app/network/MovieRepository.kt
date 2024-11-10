@@ -1,19 +1,29 @@
 package com.movie.multiplatform.compse.app.network
 
 import com.movie.multiplatform.compse.app.getPlatform
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.plugins.logging.LogLevel
-import io.ktor.client.plugins.logging.Logging
-import io.ktor.client.request.*
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
-import io.ktor.serialization.kotlinx.json.*
-import kotlinx.serialization.Serializable
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.get
+import io.ktor.client.request.parameter
+import io.ktor.serialization.kotlinx.json.json
+
+
+enum class MovieFetchType(val fetchFunction: suspend (MovieRepository, Int) -> MovieResponse) {
+    POPULAR({ repo, page -> repo.getPopularMovies(page) }),
+    TOP_RATED({ repo, page -> repo.getTopRatedMovies(page) }),
+    UPCOMING({ repo, page -> repo.getUpcomingMovies(page) }),
+    NOW_PLAYING({ repo, page -> repo.getNowPlayingMovies(page) })
+}
+
 
 class MovieRepository {
 
-    private val apiKeyVal = "56a778f90174e0061b6e7c69a5e3c9f2"
+    private val apiKeyVal = "Your API Key"
 
     private val baseUrl = "https://api.themoviedb.org/3"
     private val moviesUrl = "$baseUrl/movie"
@@ -35,7 +45,6 @@ class MovieRepository {
         }
 
         defaultRequest {
-            // not working well - to be fixed
             println("defaultRequest: $url")
             println("defaultRequest: ${url.host}")
             if (url.host == "secure.api.com") {
@@ -46,35 +55,84 @@ class MovieRepository {
 
 
     private suspend fun HttpRequestBuilder.addAuthHeaderIfNeeded() {
-        println("addAuthHeaderIfNeeded : defaultRequest: $url")
-        println("addAuthHeaderIfNeeded: defaultRequest: ${url.host}")
         if (this.url.host == "secure.api.com") {
             headers.append("Authorization", "Bearer your_token")
         }
     }
 
-
-
-
     private fun HttpRequestBuilder.addApiKey() {
         parameter(apiKey, apiKeyVal)
     }
 
-    // Fetch movies by different categories
-    suspend fun getPopularMovies(): MovieResponse = fetchMoviesByCategory("popular")
-    suspend fun getTopRatedMovies(): MovieResponse = fetchMoviesByCategory("top_rated")
-    suspend fun getUpcomingMovies(): MovieResponse = fetchMoviesByCategory("upcoming")
-    suspend fun getNowPlayingMovies(): MovieResponse = fetchMoviesByCategory("now_playing")
+    private fun HttpRequestBuilder.addLanguage() {
+        parameter("language", "en")
+    }
 
-    // Fetch movie details by ID
-    suspend fun getMovieDetails(movieId: Int): Movie {
+    private fun HttpRequestBuilder.addPage(page: Int) {
+        parameter("page", page)
+    }
+    private fun HttpRequestBuilder.addVoteAverage() {
+        parameter("vote_average.gte", 6)
+    }
+
+    private fun HttpRequestBuilder.addVoteCount() {
+        parameter("vote_count.gte", 500)
+    }
+
+    private fun HttpRequestBuilder.addAll() {
+        addApiKey()
+        addLanguage()
+        addVoteAverage()
+        addVoteCount()
+    }
+
+
+    suspend fun getPopularMovies(page: Int): MovieResponse = fetchMoviesByCategory("popular", page)
+    suspend fun getTopRatedMovies(page: Int): MovieResponse =
+        fetchMoviesByCategory("top_rated", page)
+
+    suspend fun getUpcomingMovies(page: Int): MovieResponse =
+        fetchMoviesByCategory("upcoming", page)
+
+    suspend fun getNowPlayingMovies(page: Int): MovieResponse =
+        fetchMoviesByCategory("now_playing", page)
+
+
+    suspend fun getMovieDetails(movieId: Int): MovieDetails {
         return client.get("$moviesUrl/$movieId") {
             addApiKey()
-            addAuthHeaderIfNeeded()
+            parameter("language", "en")
         }.body()
     }
 
-    // Search for movies by keyword
+
+    suspend fun getCollectionDetails(collectionId: Int): MovieCollectionResponse {
+        return client.get("$baseUrl/collection/$collectionId") {
+            addApiKey()
+            parameter("language", "en")
+        }.body()
+    }
+
+    suspend fun getMovieCast(movieId: Int): List<CastMember> {
+        val response: CreditsResponse = client.get("$moviesUrl/$movieId/credits") {
+            addApiKey()
+            parameter("language", "en")
+        }.body()
+        return response.cast
+    }
+
+
+    suspend fun getMovieImages(movieId: Int): MovieImagesResponse {
+        val response: MovieImagesResponse = client.get("$moviesUrl/$movieId/images") {
+            addApiKey()
+            parameter("language", "en")
+        }.body()
+        return response
+
+    }
+
+
+
     suspend fun searchMovies(query: String): MovieResponse {
         return client.get(searchUrl) {
             addApiKey()
@@ -82,14 +140,12 @@ class MovieRepository {
         }.body()
     }
 
-    // Get list of genres
     suspend fun getGenres(): GenreResponse {
         return client.get(genreUrl) {
             addApiKey()
         }.body()
     }
 
-    // Get movies by genre
     suspend fun getMoviesByGenre(genreId: Int): MovieResponse {
         return client.get(discoverUrl) {
             addApiKey()
@@ -97,7 +153,6 @@ class MovieRepository {
         }.body()
     }
 
-    // Get movies by year
     suspend fun getMoviesByYear(year: Int): MovieResponse {
         return client.get(discoverUrl) {
             addApiKey()
@@ -105,7 +160,7 @@ class MovieRepository {
         }.body()
     }
 
-    // Get movies sorted by criteria
+
     suspend fun getMoviesSortedBy(sortBy: String): MovieResponse {
         return client.get(discoverUrl) {
             addApiKey()
@@ -113,11 +168,13 @@ class MovieRepository {
         }.body()
     }
 
-    // Private helper function to avoid repeating code
-    private suspend fun fetchMoviesByCategory(category: String): MovieResponse {
+    private suspend fun fetchMoviesByCategory(category: String, page: Int = 1): MovieResponse {
         return client.get("$moviesUrl/$category") {
-            addApiKey()
+            addAll()
             addAuthHeaderIfNeeded()
+            addPage(page)
+
         }.body()
     }
+
 }

@@ -1,4 +1,3 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
@@ -18,7 +17,7 @@ kotlin {
             jvmTarget.set(JvmTarget.JVM_11)
         }
     }
-    
+
     listOf(
         iosX64(),
         iosArm64(),
@@ -29,15 +28,16 @@ kotlin {
             isStatic = true
         }
     }
-    
+
     sourceSets {
-        
+
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.ktor.client.okhttp)
-
+            implementation("com.google.accompanist:accompanist-systemuicontroller:0.30.0")
+            implementation("androidx.paging:paging-runtime:3.3.0-alpha02")
 
         }
         commonMain.dependencies {
@@ -47,7 +47,7 @@ kotlin {
             implementation(compose.ui)
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
-          //  implementation(libs.androidx.lifecycle.viewmodel)
+            //  implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
 
             implementation(libs.ktor.core)
@@ -62,7 +62,7 @@ kotlin {
 //            implementation("androidx.navigation:navigation-compose:2.6.0") not supported in ios yet
 
             //Coroutines
-           implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.coroutines.core)
             //Logger
             implementation(libs.napier)
             //JSON
@@ -87,6 +87,15 @@ kotlin {
             // peekaboo-image-picker
             implementation("io.github.onseok:peekaboo-image-picker:0.5.2")
 
+            // jetbrains navigation compose library
+            implementation("org.jetbrains.androidx.navigation:navigation-compose:2.7.0-alpha07")
+
+
+//            implementation("androidx.paging:paging-common:3.3.0-alpha02")
+//            implementation("androidx.paging:paging-compose:3.3.0-alpha02")
+
+            implementation("app.cash.paging:paging-compose-common:3.3.0-alpha02-0.4.0")
+            implementation("app.cash.paging:paging-common:3.3.0-alpha02-0.4.0")
 
         }
         iosMain.dependencies {

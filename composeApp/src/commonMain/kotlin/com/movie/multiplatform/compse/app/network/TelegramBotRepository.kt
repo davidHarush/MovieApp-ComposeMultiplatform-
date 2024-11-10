@@ -1,12 +1,8 @@
 package com.movie.multiplatform.compse.app.network
 
 
-
 import com.movie.multiplatform.compse.app.getPlatform
-import io.github.aakira.napier.Napier
-import io.github.aakira.napier.log
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.logging.DEFAULT
 import io.ktor.client.plugins.logging.LogLevel
@@ -19,11 +15,9 @@ import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.delay
@@ -32,10 +26,26 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
+
+//@Composable
+//fun testTelegramBot() {
+//    rememberCoroutineScope().launch {
+//        TelegramBotRepository().sendMessageToChat("Hello from Compose  -> device: ${getPlatform().name}")
+////            val stickerFileId =
+////                "CAACAgQAAxkBAAEuxWJnI0kknwek2BEc-_ihqOvdJorztwACAQcAApWtnAForTr_KwnG6zYE"
+////            sendStickerToChat(stickerFileId)
+////            sendWelcomeMessageWithInlineKeyboard()
+////            startListeningForCallbackQueries(this@launch)
+//
+//    }
+//
+//
+//}
+
 class TelegramBotRepository {
 
-    private val botToken = "7589068254:AAFSAmR3Bumywa6L9EnW_twwVxSIBsAAaJU"
-    private val groupId: String = "-1002391522958"
+    private val botToken = "YourBotToken"
+    private val groupId: String = "YourGroupId"
     private var lastUpdateId: Long = 0
 
 
@@ -235,7 +245,11 @@ class TelegramBotRepository {
                 if (chatId != null) {
                     when (data) {
                         "contact_us" -> sendMessageToChatWithId(chatId, "לחצת על צור קשר ?")
-                        "additional_links" -> sendMessageToChatWithId(chatId, "לחצת על כפתור קישורים נוספים ?")
+                        "additional_links" -> sendMessageToChatWithId(
+                            chatId,
+                            "לחצת על כפתור קישורים נוספים ?"
+                        )
+
                         else -> sendMessageToChatWithId(chatId, "לא מוכר הנתון שהתקבל.")
                     }
                 }
@@ -272,7 +286,12 @@ class TelegramBotRepository {
     )
 
     @Serializable
-    data class User(val id: Long, val is_bot: Boolean, val first_name: String, val username: String? = null)
+    data class User(
+        val id: Long,
+        val is_bot: Boolean,
+        val first_name: String,
+        val username: String? = null
+    )
 
     @Serializable
     data class Message(
@@ -285,21 +304,32 @@ class TelegramBotRepository {
     data class Chat(val id: Long, val type: String)
 
 
-
     @Serializable
     data class TelegramMessageRequest(val chat_id: String, val text: String)
 
     @Serializable
-    data class TelegramPhotoRequest(val chat_id: String, val photo: String, val caption: String = "")
+    data class TelegramPhotoRequest(
+        val chat_id: String,
+        val photo: String,
+        val caption: String = ""
+    )
 
     @Serializable
     data class TelegramStickerRequest(val chat_id: String, val sticker: String)
 
     @Serializable
-    data class TelegramEditMessageRequest(val chat_id: String, val message_id: Int, val text: String)
+    data class TelegramEditMessageRequest(
+        val chat_id: String,
+        val message_id: Int,
+        val text: String
+    )
 
     @Serializable
-    data class TelegramLocationRequest(val chat_id: String, val latitude: Double, val longitude: Double)
+    data class TelegramLocationRequest(
+        val chat_id: String,
+        val latitude: Double,
+        val longitude: Double
+    )
 
     @Serializable
     data class InlineKeyboardButton(val text: String, val callback_data: String)
@@ -327,8 +357,6 @@ class TelegramBotRepository {
         val reply_markup: ReplyKeyboardMarkup
     )
 }
-
-
 
 
 //package com.movie.multiplatform.compse.app.network
@@ -392,8 +420,6 @@ class TelegramBotRepository {
 //
 //    }
 //
-
-
 
 
 //

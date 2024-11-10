@@ -1,4 +1,4 @@
-package com.movie.multiplatform.compse.app.imageSelection
+package com.movie.multiplatform.compse.app.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
