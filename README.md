@@ -15,8 +15,10 @@ To get started with this project, you need to have Android Studio or IntelliJ ID
 
 ### Prerequisites
 
-- [Android Studio](https://developer.android.com/studio) or [IntelliJ IDEA](https://www.jetbrains.com/idea/download/)
-- Kotlin Multiplatform Mobile Plugin
+- [Android Studio](https://developer.android.com/studio) for setting up the development environment
+- **Kotlin Multiplatform Mobile Plugin** for supporting cross-platform development
+- [Xcode](https://developer.apple.com/xcode/) - required for building and running the iOS version of the app
+
 
 ### Setup Instructions
 
