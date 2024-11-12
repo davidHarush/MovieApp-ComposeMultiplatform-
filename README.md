@@ -49,14 +49,14 @@ To get started with this project, you need to have Android Studio or IntelliJ ID
 
 ## Screenshots
 
-### Android
+## Android
 <div style="display: flex; flex-wrap: wrap;">
   <img src="screenshots/android_screenshot_1.png" alt="Android Screenshot 1" width="30%" style="margin: 10px;" />
   <img src="screenshots/android_screenshot_2.png" alt="Android Screenshot 2" width="30%" style="margin: 10px;" />
 </div>
 
 
-### iOS
+## iOS
 <div style="display: flex; flex-wrap: wrap;">
   <img src="screenshots/ios_screenshot_1.png" alt="iOS Screenshot 1" width="30%" style="margin: 10px;" />
   <img src="screenshots/ios_screenshot_2.png" alt="iOS Screenshot 2" width="30%" style="margin: 10px;" />
@@ -65,14 +65,6 @@ To get started with this project, you need to have Android Studio or IntelliJ ID
 ## Contributing
 
 Feel free to contribute to this project by submitting pull requests. For major changes, please open an issue first to discuss what you would like to change.
-
-### Contribution Steps
-
-1. Fork the repository.
-2. Create a new branch (`git checkout -b feature/YourFeatureName`).
-3. Make your changes and commit them (`git commit -m 'Add some feature'`).
-4. Push to the branch (`git push origin feature/YourFeatureName`).
-5. Open a pull request.
 
 ---
 
