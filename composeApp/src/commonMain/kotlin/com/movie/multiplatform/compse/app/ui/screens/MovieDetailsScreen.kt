@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil3.compose.AsyncImage
 import com.movie.multiplatform.compse.app.network.CastMember
+import com.movie.multiplatform.compse.app.network.CreditsResponse
 import com.movie.multiplatform.compse.app.network.MovieCollectionResponse
 import com.movie.multiplatform.compse.app.network.MovieDetails
 import com.movie.multiplatform.compse.app.network.MovieHelper
@@ -56,6 +57,7 @@ import com.movie.multiplatform.compse.app.network.MovieRepository
 fun MovieDetailsScreen(movieId: Int, onBack: () -> Unit) {
     val repository = MovieRepository()
     var movieDetails by remember { mutableStateOf<MovieDetails?>(null) }
+    var credits by remember { mutableStateOf<CreditsResponse?>(null) }
     var castList by remember { mutableStateOf<List<CastMember>>(emptyList()) }
     var movieImages by remember{ mutableStateOf<MovieImagesResponse?>(null) }
     var collection by remember { mutableStateOf<MovieCollectionResponse?>(null)}
@@ -64,11 +66,18 @@ fun MovieDetailsScreen(movieId: Int, onBack: () -> Unit) {
     LaunchedEffect(movieId) {
         movieDetails = repository.getMovieDetails(movieId)
         movieImages = repository.getMovieImages(movieId)
-        castList = repository.getMovieCast(movieId)
-        castList = castList.filter { it.profile_path != null }
+        credits = repository.getMovieCast(movieId)
+        castList = credits?.cast?.filter { it.profile_path != null } ?: emptyList()
+
+        //movieDetails log
+        println( "MovieDetails: $movieDetails")
+        // collection  log
+        println( "Collection: ${movieDetails?.belongs_to_collection}")
 
         movieDetails?.belongs_to_collection.let {
+            println( "Collection: $it")
             collection = repository.getCollectionDetails(it?.id ?: 0)
+            println( "Collection: $collection")
         }
     }
 

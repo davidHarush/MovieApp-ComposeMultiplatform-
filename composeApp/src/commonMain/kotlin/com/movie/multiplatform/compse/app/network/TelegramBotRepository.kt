@@ -44,8 +44,8 @@ import kotlinx.serialization.json.Json
 
 class TelegramBotRepository {
 
-    private val botToken = "YourBotToken"
-    private val groupId: String = "YourGroupId"
+    private val botToken = "7589068254:AAFSAmR3Bumywa6L9EnW_twwVxSIBsAAaJU"
+    private val groupId: String = "-1002391522958"
     private var lastUpdateId: Long = 0
 
 
